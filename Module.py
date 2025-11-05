@@ -158,11 +158,11 @@ class Module:
 
 	def downloadStorage(self):
 		""" Select a file from the storage folder (wrapped auth) """
-		files = os.listdir(self.storage_dir)
+		files = os.listdir(self.storage_dir) if self.storage_dir != None else []
 
 		# dodge flasks template folder settings
 		download_page = os.path.join(os.path.dirname(os.path.abspath(__file__)), "download_page.html")
-		with open("download_page.html", "r") as page:
+		with open(download_page, "r") as page:
 			return render_template_string(page.read(), files=files)
 	
 	def downloadStorageFile(self, filename):
