@@ -9,6 +9,7 @@ import requests
 import json
 from functools import wraps
 from dotenv import dotenv_values
+import logging
 
 class Module:
 	""" Parent class to modules
@@ -19,7 +20,19 @@ class Module:
 	:param template_folder:
 	:type template_folder: str, optional 
 	"""
+
+	TEST_MODE = True # set test mode with environment variable PROD_OR_TEST set to anything but PROD 
+
 	def __init__(self, config="config/config.json", template_folder="", storage_folder="./storage", static_folder="./static"):
+		# test setup
+		if os.getenv("PROD_OR_TEST") == "PROD":
+			self.TEST_MODE = False
+
+			# in TEST mode, log everything (stdout or journal) -> in PROD only errors
+			log = logging.getLogger('werkzeug')
+			log.setLevel(logging.ERROR)
+
+
 		with open(config, "r") as f:
 			self.config = json.load(f)
 
