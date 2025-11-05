@@ -19,7 +19,7 @@ class Module:
 	:param template_folder:
 	:type template_folder: str, optional 
 	"""
-	def __init__(self, config="config/config.json", template_folder="", storage_folder="./storage"):
+	def __init__(self, config="config/config.json", template_folder="", storage_folder="./storage", static_folder="./static"):
 		with open(config, "r") as f:
 			self.config = json.load(f)
 
@@ -30,7 +30,7 @@ class Module:
 		self.id = self.config["id"]
 
 		self.api = {"id": (lambda: self.id)}
-		self.app = Flask(__name__, template_folder=template_folder) # template folder would otherwise be "/template/" for stuff like index.html
+		self.app = Flask(__name__, template_folder=template_folder, static_folder=static_folder) # template folder would otherwise be "/template/" for stuff like index.html
 		cors = CORS(self.app) # allow all cross origin requests
 		self.app.add_url_rule("/id", "id", lambda: jsonify({"id": self.id}))
 		self.app.add_url_rule("/api-doc", "api-doc", lambda: jsonify({"api": self.api_flat}))
