@@ -23,7 +23,7 @@ class Module:
 
 	TEST_MODE = True # set test mode with environment variable PROD_OR_TEST set to anything but PROD 
 
-	def __init__(self, config="config/config.json", template_folder="", storage_folder="./storage", static_folder="./static"):
+	def __init__(self, config="config/config.json", test_config="config/test_config.json", template_folder="", storage_folder="./storage", static_folder="./static"):
 		# test setup
 		if os.getenv("PROD_OR_TEST") == "PROD":
 			self.TEST_MODE = False
@@ -32,8 +32,13 @@ class Module:
 			log = logging.getLogger('werkzeug')
 			log.setLevel(logging.ERROR)
 
+			print("Running in PRODUCTION MODE. Set PROD_OR_TEST to TEST (bash: `export PROD_OR_TEST=TEST`) for TEST MODE")
+		else:
+			config = test_config
+			print("Running in TEST MODE. Set PROD_OR_TEST to PROD (bash: `export PROD_OR_TEST=PROD`) for PRODUCTION MODE")
 
-		with open(config, "r") as f:
+		config_abs = os.path.abspath(config)
+		with open(config_abs, "r") as f:
 			self.config = json.load(f)
 
 		self.storage_dir = storage_folder
@@ -54,6 +59,12 @@ class Module:
 		self.api_flat = ["/id", "/api-doc", "/download"] # list of all api endpoints as full strings
 		self.available_modules = None # change via scan_network method, initialized as None to signal it hasn't scanned yet
 		return
+
+	def app_run(self):
+		""" Run the server/app with for ip addresses and on the port listed in the given config file """
+		host = self.config["host_ip"]
+		port = self.config["port"]
+		self.app.run(host=host, port=port, debug=self.TEST_MODE)
 
 	def add_website(self, file):
 		"""Add a path to a html website/file to be made available under https://xxx.xxx.xxx.xxx/index
@@ -88,7 +99,7 @@ class Module:
 		# set as path on the server
 		#self.app.add_url_rule("/" + path, path, lambda: jsonify(method()))
 		self.app.add_url_rule("/" + path, path, method, methods=["GET", "POST"]) 
-		self.app.add_url_rule("/" + path + ".doc", path + ".doc", lambda: method.__doc__, methods=["GET"])
+		self.app.add_url_rule("/" + path + ".doc", path + ".doc", lambda: method.__doc__.replace("\n", "<br>"), methods=["GET"])
 
 
 	def add_all_api(self, api):
